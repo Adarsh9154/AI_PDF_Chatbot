@@ -23,6 +23,7 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 uploaded_files = []
 chat_history = []
