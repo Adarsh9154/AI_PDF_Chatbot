@@ -37,50 +37,47 @@ def home():
 @app.route("/upload", methods=["POST"])
 def upload_pdf():
 
-    if "pdf_file" not in request.files:
+    # Ensure required folders exist
+    os.makedirs("cache", exist_ok=True)
+    os.makedirs("uploads", exist_ok=True)
 
+    if "pdf_file" not in request.files:
         return jsonify({
-    "error": "No file uploaded"
-}), 400
+            "error": "No file uploaded"
+        }), 400
 
     file = request.files["pdf_file"]
 
     if file.filename == "":
-
         return jsonify({
-    "error": "No selected file"
-}), 400
+            "error": "No selected file"
+        }), 400
 
     if not allowed_file(file.filename):
-
         return jsonify({
-    "error": "Only PDF files are allowed"
-}), 400
+            "error": "Only PDF files are allowed"
+        }), 400
 
-# Generate file hash
-file_hash = generate_file_hash(file)
+    # Generate file hash
+    file_hash = generate_file_hash(file)
 
-# Ensure cache directory and file exist
-    os.makedirs("cache", exist_ok=True)
-
+    # Ensure hash file exists
     hash_file_path = "cache/uploaded_hashes.txt"
 
     if not os.path.exists(hash_file_path):
-        with open(hash_file_path, "w") as f:
-            pass
+        open(hash_file_path, "w").close()
 
-    # Duplicate check
+    # Check duplicates
     with open(hash_file_path, "r") as hash_file:
         existing_hashes = hash_file.read().splitlines()
 
     if file_hash in existing_hashes:
         return jsonify({
-        "error": "Duplicate PDF detected. This file was already uploaded."
-    }), 400
+            "error": "Duplicate PDF detected. This file was already uploaded."
+        }), 400
 
     # Save new hash
-    with open("cache/uploaded_hashes.txt", "a") as hash_file:
-
+    with open(hash_file_path, "a") as hash_file:
         hash_file.write(file_hash + "\n")
 
     filename = secure_filename(file.filename)
@@ -98,34 +95,30 @@ file_hash = generate_file_hash(file)
     pdf_data = extract_text_from_pdf(pdf_path)
 
     if not pdf_data:
-
         return jsonify({
-    "error": "Unable to process PDF. The file may be corrupted."
-}), 400
+            "error": "Unable to process PDF. The file may be corrupted."
+        }), 400
 
     extracted_text = pdf_data["text"]
-
     total_pages = pdf_data["pages"]
 
     if len(extracted_text.strip()) == 0:
-
         return jsonify({
-    "error": "This PDF does not contain readable text."
-}), 400
+            "error": "This PDF does not contain readable text."
+        }), 400
 
     pages_data = pdf_data["pages_data"]
 
     for page in pages_data:
-        page["text"] = clean_text(
-        page["text"]
-    )
+        page["text"] = clean_text(page["text"])
+
     chunks = split_text(
-    pages_data,
-    filename
-)
+        pages_data,
+        filename
+    )
+
     create_vector_store(chunks)
 
-    # File metadata
     file_size = round(
         os.path.getsize(pdf_path) / (1024 * 1024),
         2
@@ -150,13 +143,12 @@ file_hash = generate_file_hash(file)
     )
 
     return jsonify({
-    "success": True,
-    "filename": filename,
-    "pages": total_pages,
-    "size_mb": file_size,
-    "chunks": len(chunks)
-})
-
+        "success": True,
+        "filename": filename,
+        "pages": total_pages,
+        "size_mb": file_size,
+        "chunks": len(chunks)
+    })
 @app.route("/ask", methods=["POST"])
 def ask():
 
