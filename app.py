@@ -60,10 +60,18 @@ def upload_pdf():
     # Generate file hash
     file_hash = generate_file_hash(file)
 
-    # Duplicate check
-    with open("cache/uploaded_hashes.txt", "r") as hash_file:
+    # Ensure cache directory and file exist
+os.makedirs("cache", exist_ok=True)
 
-        existing_hashes = hash_file.read().splitlines()
+hash_file_path = "cache/uploaded_hashes.txt"
+
+if not os.path.exists(hash_file_path):
+    with open(hash_file_path, "w") as f:
+        pass
+
+# Duplicate check
+with open(hash_file_path, "r") as hash_file:
+    existing_hashes = hash_file.read().splitlines()
 
     if file_hash in existing_hashes:
         return jsonify({
