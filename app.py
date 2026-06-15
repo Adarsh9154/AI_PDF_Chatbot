@@ -18,6 +18,9 @@ from flask import jsonify
 from flask import redirect, url_for
 
 app = Flask(__name__)
+os.makedirs("cache", exist_ok=True)
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
