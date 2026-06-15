@@ -57,21 +57,21 @@ def upload_pdf():
     "error": "Only PDF files are allowed"
 }), 400
 
-    # Generate file hash
-    file_hash = generate_file_hash(file)
+# Generate file hash
+file_hash = generate_file_hash(file)
 
-    # Ensure cache directory and file exist
-os.makedirs("cache", exist_ok=True)
+# Ensure cache directory and file exist
+    os.makedirs("cache", exist_ok=True)
 
-hash_file_path = "cache/uploaded_hashes.txt"
+    hash_file_path = "cache/uploaded_hashes.txt"
 
-if not os.path.exists(hash_file_path):
-    with open(hash_file_path, "w") as f:
-        pass
+    if not os.path.exists(hash_file_path):
+        with open(hash_file_path, "w") as f:
+            pass
 
-# Duplicate check
-with open(hash_file_path, "r") as hash_file:
-    existing_hashes = hash_file.read().splitlines()
+    # Duplicate check
+    with open(hash_file_path, "r") as hash_file:
+        existing_hashes = hash_file.read().splitlines()
 
     if file_hash in existing_hashes:
         return jsonify({
